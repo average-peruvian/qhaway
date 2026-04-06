@@ -37,6 +37,7 @@ export default function MapView() {
     kingdom:    filters.kingdom,
     year_min:   filters.year_min,
     year_max:   filters.year_max,
+    grade:      filters.grade,
     metric,
     resolution,
   }
@@ -134,7 +135,7 @@ const s = {
   controls:  { position:'absolute', top:0, left:0, right:0, zIndex:10, display:'flex', alignItems:'center', gap:8, padding:'6px 16px', background:'var(--surface)', borderBottom:'1px solid var(--border)', height:44 },
   label:     { fontSize:10, color:'var(--text-3)', letterSpacing:'0.1em', textTransform:'uppercase', marginRight:2 },
   divider:   { width:1, height:16, background:'var(--border-2)', margin:'0 4px' },
-  chip:      { display:'inline-flex', alignItems:'center', padding:'3px 9px', border:'1px solid var(--border-2)', fontSize:11, color:'var(--text-2)', cursor:'pointer' },
+  chip:      { display:'inline-flex', alignItems:'center', padding:'3px 9px', border:'1px solid var(--border-2)', borderColor:'var(--border-2)', fontSize:11, color:'var(--text-2)', cursor:'pointer', background:'transparent' },
   chipActive:{ borderColor:'var(--accent)', color:'var(--accent-glow)', background:'rgba(78,144,104,0.08)' },
   loadingDot:{ width:6, height:6, borderRadius:'50%', background:'var(--accent)', marginLeft:4, animation:'pulse 1.2s ease-in-out infinite', opacity:.7 },
 

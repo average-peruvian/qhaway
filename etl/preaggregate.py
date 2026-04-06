@@ -25,13 +25,14 @@ AGGREGATIONS = {
             o.h3_r3,
             o.h3_r5,
             t.kingdom,
+            o.quality_grade,
             o.year,
             COUNT(*)                      AS n_obs,
             COUNT(DISTINCT o.taxon_id)    AS n_species,
             COUNT(DISTINCT o.observer_id) AS n_observers
         {BASE_QUERY}
         WHERE o.h3_r3 IS NOT NULL
-        GROUP BY 1, 2, 3, 4
+        GROUP BY 1, 2, 3, 4, 5
     """,
 
     'country_stats': f"""
@@ -39,13 +40,14 @@ AGGREGATIONS = {
             o.h3_r3,
             t.kingdom,
             t.phylum,
+            o.quality_grade,
             o.year,
             COUNT(*)                      AS n_obs,
             COUNT(DISTINCT o.taxon_id)    AS n_species,
             COUNT(DISTINCT o.observer_id) AS n_observers
         {BASE_QUERY}
         WHERE o.h3_r3 IS NOT NULL
-        GROUP BY 1, 2, 3, 4
+        GROUP BY 1, 2, 3, 4, 5
     """,
 
     'temporal': f"""
@@ -53,11 +55,12 @@ AGGREGATIONS = {
             o.year,
             o.month,
             t.kingdom,
+            o.quality_grade,
             COUNT(*)                   AS n_obs,
             COUNT(DISTINCT o.taxon_id) AS n_species
         {BASE_QUERY}
         WHERE o.year IS NOT NULL AND o.month IS NOT NULL
-        GROUP BY 1, 2, 3
+        GROUP BY 1, 2, 3, 4
     """,
 
     'taxon_tree': f"""
@@ -68,10 +71,11 @@ AGGREGATIONS = {
             t.order,
             t.family,
             t.genus,
+            o.quality_grade,
             COUNT(DISTINCT o.taxon_id) AS n_species,
             COUNT(*)                   AS n_obs
         {BASE_QUERY}
-        GROUP BY 1, 2, 3, 4, 5, 6
+        GROUP BY 1, 2, 3, 4, 5, 6, 7
     """,
 
     'species_list': f"""
@@ -85,6 +89,7 @@ AGGREGATIONS = {
             t.order,
             t.family,
             t.genus,
+            o.quality_grade,
             COUNT(*)                      AS n_obs,
             COUNT(DISTINCT o.observer_id) AS n_observers,
             MIN(o.year)                   AS first_year,
@@ -92,7 +97,7 @@ AGGREGATIONS = {
             COUNT(DISTINCT o.h3_r3)       AS n_cells
         {BASE_QUERY}
         WHERE t.rank = 'species'
-        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9
+        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     """,
 }
 

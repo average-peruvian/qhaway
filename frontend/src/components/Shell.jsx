@@ -1,4 +1,6 @@
 import { useFilters } from '../hooks/useFilters'
+import { useApi }     from '../hooks/useApi'
+import { api }        from '../lib/api'
 
 const NAV = [
   { key: 'map',      label: 'Mapa global',    icon: IconGlobe },
@@ -12,6 +14,12 @@ const KINGDOMS = ['all','Animalia','Plantae','Fungi','Chromista','Protozoa','Bac
 
 export default function Shell({ activeView, viewLabel, onNav, children }) {
   const { filters, set, reset } = useFilters()
+  const { data: stats } = useApi(api.stats, {
+    kingdom:  filters.kingdom,
+    year_min: filters.year_min,
+    year_max: filters.year_max,
+    grade:    filters.grade,
+  })
 
   return (
     <div style={s.shell}>
@@ -70,9 +78,9 @@ export default function Shell({ activeView, viewLabel, onNav, children }) {
         </div>
 
         <div style={s.footer}>
-          <div style={s.footerRow}><span>Observaciones</span><span style={s.footerVal}>247.3M</span></div>
-          <div style={s.footerRow}><span>Especies</span>    <span style={s.footerVal}>481,220</span></div>
-          <div style={s.footerRow}><span>Países</span>      <span style={s.footerVal}>243</span></div>
+          <div style={s.footerRow}><span>Observaciones</span><span style={s.footerVal}>{stats ? (stats.n_obs / 1e6).toFixed(1) + 'M' : '–'}</span></div>
+          <div style={s.footerRow}><span>Especies</span>    <span style={s.footerVal}>{stats ? stats.n_species.toLocaleString() : '–'}</span></div>
+          <div style={s.footerRow}><span>Celdas H3</span>   <span style={s.footerVal}>{stats ? stats.n_cells.toLocaleString() : '–'}</span></div>
           <div
             style={{ ...s.footerRow, marginTop: 8, cursor: 'pointer', color: 'var(--text-3)' }}
             onClick={reset}
@@ -146,7 +154,7 @@ const s = {
   topbar:      { height:50, background:'var(--surface)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 20px', gap:10, flexShrink:0 },
   viewTitle:   { fontFamily:'var(--font-display)', fontSize:14, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-2)' },
   topbarSpacer:{ flex:1 },
-  chip:        { display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', border:'1px solid var(--border-2)', fontSize:11, color:'var(--text-2)', cursor:'pointer' },
+  chip:        { display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', border:'1px solid var(--border-2)', borderColor:'var(--border-2)', fontSize:11, color:'var(--text-2)', cursor:'pointer', background:'transparent' },
   chipActive:  { borderColor:'var(--accent)', color:'var(--accent-glow)', background:'rgba(78,144,104,0.08)' },
   chipDot:     { width:6, height:6, borderRadius:'50%', background:'currentColor' },
 

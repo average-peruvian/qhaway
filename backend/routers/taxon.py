@@ -24,11 +24,14 @@ LEVELS = ["kingdom", "phylum", "class", "order", "family", "genus"]
 def taxon_tree(
     kingdom: str = Query("all"),
     depth:   int = Query(4, ge=2, le=6),
+    grade:   str = Query("all"),
 ):
     df: pd.DataFrame = AGG["taxon_tree"].copy()
 
     if kingdom != "all":
         df = df[df["kingdom"] == kingdom]
+    if grade != "all":
+        df = df[df["quality_grade"] == grade]
 
     group_cols = LEVELS[:depth]
 

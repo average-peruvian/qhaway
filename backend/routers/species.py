@@ -19,11 +19,14 @@ def list_species(
     page:      int = Query(1,  ge=1),
     page_size: int = Query(24, ge=1, le=100),
     sort_by:   str = Query("obs"),
+    grade:     str = Query("all"),
 ):
     df: pd.DataFrame = AGG["species_list"].copy()
 
     if kingdom != "all":
         df = df[df["kingdom"] == kingdom]
+    if grade != "all":
+        df = df[df["quality_grade"] == grade]
     if q:
         df = df[df["name"].str.contains(q, case=False, na=False)]
 

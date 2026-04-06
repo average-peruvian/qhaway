@@ -68,7 +68,6 @@ def _step1_csv_to_parquet(src: str, tmp: str) -> None:
             WHERE latitude  IS NOT NULL
               AND longitude IS NOT NULL
               AND TRY_CAST(positional_accuracy AS INTEGER) < {MAX_POSITIONAL_ACCURACY}
-              AND quality_grade = '{QUALITY_GRADE}'
         )
         TO '{tmp}'
         (FORMAT PARQUET, COMPRESSION zstd, ROW_GROUP_SIZE 200000)

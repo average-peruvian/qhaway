@@ -14,6 +14,7 @@ export function Temporal() {
     kingdom:     filters.kingdom,
     year_min:    filters.year_min,
     year_max:    filters.year_max,
+    grade:       filters.grade,
     granularity,
   }
   const { data, loading } = useApi(api.temporal, params)
@@ -65,7 +66,7 @@ export function TaxonTree() {
   const [depth, setDepth] = useState(3)
   const containerRef      = useRef(null)
 
-  const params = { kingdom: filters.kingdom, depth }
+  const params = { kingdom: filters.kingdom, depth, grade: filters.grade }
   const { data, loading } = useApi(api.taxonTree, params)
 
   useEffect(() => {
@@ -212,7 +213,7 @@ function Chip({ children, active, onClick }) {
 const s = {
   controls:  { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0 },
   label:     { fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: 4 },
-  chip:      { display: 'inline-flex', alignItems: 'center', padding: '3px 9px', border: '1px solid var(--border-2)', fontSize: 11, color: 'var(--text-2)', cursor: 'pointer' },
+  chip:      { display: 'inline-flex', alignItems: 'center', padding: '3px 9px', border: '1px solid var(--border-2)', borderColor: 'var(--border-2)', fontSize: 11, color: 'var(--text-2)', cursor: 'pointer', background: 'transparent' },
   chipActive:{ borderColor: 'var(--accent)', color: 'var(--accent-glow)', background: 'rgba(78,144,104,0.08)' },
   loading:   { fontSize: 11, color: 'var(--text-3)', marginLeft: 8 },
 }

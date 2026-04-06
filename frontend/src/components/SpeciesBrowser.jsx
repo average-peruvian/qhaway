@@ -27,18 +27,18 @@ export default function SpeciesBrowser() {
   useEffect(() => {
     setPage(1)
     setSelected(null)
-  }, [filters.kingdom, debouncedQ, sortBy])
+  }, [filters.kingdom, filters.grade, debouncedQ, sortBy])
 
   // Fetch
   useEffect(() => {
     setLoading(true)
-    api.species({ kingdom: filters.kingdom, q: debouncedQ, page, page_size: PAGE_SIZE, sort_by: sortBy })
+    api.species({ kingdom: filters.kingdom, grade: filters.grade, q: debouncedQ, page, page_size: PAGE_SIZE, sort_by: sortBy })
       .then(res => {
         setItems(res.data)
         setTotal(res.total ?? 0)
       })
       .finally(() => setLoading(false))
-  }, [filters.kingdom, debouncedQ, page, sortBy])
+  }, [filters.kingdom, filters.grade, debouncedQ, page, sortBy])
 
   // Detail
   useEffect(() => {
@@ -232,7 +232,7 @@ const s = {
   searchInput:{ background:'none', border:'none', outline:'none', fontFamily:'var(--font-mono)', fontSize:12, color:'var(--text)', width:'100%' },
   controlGroup: { display:'flex', alignItems:'center', gap:4 },
   label:    { fontSize:10, color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.08em', marginRight:2 },
-  chip:     { display:'inline-flex', alignItems:'center', padding:'3px 8px', border:'1px solid var(--border-2)', fontSize:11, color:'var(--text-2)', cursor:'pointer' },
+  chip:     { display:'inline-flex', alignItems:'center', padding:'3px 8px', border:'1px solid var(--border-2)', borderColor:'var(--border-2)', fontSize:11, color:'var(--text-2)', cursor:'pointer', background:'transparent' },
   chipActive:{ borderColor:'var(--accent)', color:'var(--accent-glow)', background:'rgba(78,144,104,0.08)' },
   count:    { fontSize:11, color:'var(--text-3)', marginLeft:'auto' },
 

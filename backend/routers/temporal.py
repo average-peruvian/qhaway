@@ -26,11 +26,14 @@ def temporal(
     year_min:    int = Query(None),
     year_max:    int = Query(None),
     granularity: str = Query("monthly"),
+    grade:       str = Query("all"),
 ):
     df: pd.DataFrame = AGG["temporal"].copy()
 
     if kingdom != "all":
         df = df[df["kingdom"] == kingdom]
+    if grade != "all":
+        df = df[df["quality_grade"] == grade]
     if year_min is not None:
         df = df[df["year"] >= year_min]
     if year_max is not None:

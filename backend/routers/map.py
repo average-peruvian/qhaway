@@ -39,12 +39,15 @@ def hex_density(
     year_min:   int   = Query(None),
     year_max:   int   = Query(None),
     metric:     str   = Query("obs"),
+    grade:      str   = Query("all"),
 ):
     df: pd.DataFrame = AGG["hex_density"].copy()
 
     # Filtros
     if kingdom != "all":
         df = df[df["kingdom"] == kingdom]
+    if grade != "all":
+        df = df[df["quality_grade"] == grade]
     if year_min is not None:
         df = df[df["year"] >= year_min]
     if year_max is not None:
