@@ -1,0 +1,55 @@
+"""
+GET /api/species       — lista paginada desde RAM (species_list)
+GET /api/species/{id}  — detalle con LRU cache
+"""
+
+from fastapi import APIRouter, Query, HTTPException
+from fastapi.responses import JSONResponse
+import pandas as pd
+
+from dashboard.cache import AGG, get_species
+
+router = APIRouter()
+
+
+@router.get("")
+def list_species(
+    kingdom:   str = Query("all"),
+    q:         str = Query(""),
+    page:      int = Query(1,  ge=1),
+    page_size: int = Query(24, ge=1, le=100),
+    sort_by:   str = Query("obs"),
+):
+    df: pd.DataFrame = AGG["species_list"].copy()
+
+    if kingdom != "all":
+        df = df[df["kingdom"] == kingdom]
+    if q:
+        df = df[df["name"].str.contains(q, case=False, na=False)]
+
+    sort_col = {"obs": "n_obs", "species": "name", "observers": "n_observers"}.get(sort_by, "n_obs")
+    df = df.sort_values(sort_col, ascending=(sort_col == "name"))
+
+    total = len(df)
+    start = (page - 1) * page_size
+    page_df = df.iloc[start:start + page_size]
+
+    return JSONResponse({
+        "page":      page,
+        "page_size": page_size,
+        "total":     total,
+        "data":      page_df.to_dict(orient="records"),
+    })
+
+
+@router.get("/{taxon_id}")
+def species_detail(taxon_id: int):
+    try:
+        result = get_species(taxon_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    if result.get("name") is None:
+        raise HTTPException(status_code=404, detail=f"taxon_id {taxon_id} not found")
+
+    return JSONResponse(result)
