@@ -19,6 +19,7 @@ export default function Shell({ activeView, viewLabel, onNav, children }) {
     <div style={s.shell}>
       {/* SIDEBAR */}
       <aside style={s.sidebar}>
+        <div style={s.globeWrap}><SidebarGlobe /></div>
         <div style={s.logo}>
           <div style={s.logoName}>BioExplorer</div>
           <div style={s.logoSub}>iNaturalist · GBIF · Global</div>
@@ -116,7 +117,8 @@ const s = {
   sidebar: { width:220, flexShrink:0, background:'var(--surface)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column' },
   main:    { flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },
 
-  logo:    { padding:'18px 20px 14px', borderBottom:'1px solid var(--border)' },
+  logo:    { padding:'10px 20px 14px', borderBottom:'1px solid var(--border)' },
+  globeWrap:{ padding:'16px 0 0', display:'flex', justifyContent:'center' },
   logoName:{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, letterSpacing:'0.08em', color:'var(--accent-glow)', textTransform:'uppercase' },
   logoSub: { fontSize:10, color:'var(--text-3)', letterSpacing:'0.12em', marginTop:2 },
 
@@ -147,6 +149,38 @@ const s = {
 }
 
 // ── SVG icons ──────────────────────────────────────────────────────────────
+function SidebarGlobe() {
+  return (
+    <svg width="180" height="180" viewBox="0 0 160 160" style={{ display:'block', margin:'0 auto' }}>
+      <style>{`
+        @keyframes globe-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes globe-pulse { 0%,100% { opacity:0.4; } 50% { opacity:0.8; } }
+        .g-mer { animation: globe-spin 12s linear infinite; transform-origin: 80px 80px; }
+        .g-dot { animation: globe-pulse 3s ease-in-out infinite; }
+      `}</style>
+      <circle cx="80" cy="80" r="52" fill="none" stroke="#1e2e1f" strokeWidth="0.5"/>
+      <circle cx="80" cy="80" r="52" fill="none" stroke="#2d5c3f" strokeWidth="0.8"/>
+      <circle cx="80" cy="80" r="38" fill="none" stroke="#1e2e1f" strokeWidth="0.5"/>
+      <circle cx="80" cy="80" r="22" fill="none" stroke="#1e2e1f" strokeWidth="0.5"/>
+      <line x1="28" y1="80" x2="132" y2="80" stroke="#1e2e1f" strokeWidth="0.5"/>
+      <g className="g-mer">
+        <ellipse cx="80" cy="80" rx="18" ry="52" fill="none" stroke="#4e9068" strokeWidth="0.7" opacity="0.6"/>
+        <ellipse cx="80" cy="80" rx="36" ry="52" fill="none" stroke="#4e9068" strokeWidth="0.7" opacity="0.4"/>
+        <ellipse cx="80" cy="80" rx="50" ry="52" fill="none" stroke="#4e9068" strokeWidth="0.7" opacity="0.25"/>
+      </g>
+      <ellipse cx="80" cy="80" rx="52" ry="14" fill="none" stroke="#2d5c3f" strokeWidth="0.5" transform="rotate(-23 80 80)"/>
+      <ellipse cx="80" cy="80" rx="52" ry="14" fill="none" stroke="#2d5c3f" strokeWidth="0.5" transform="rotate(23 80 80)"/>
+      <circle className="g-dot" cx="62" cy="58" r="2" fill="#6db88a"/>
+      <circle className="g-dot" cx="95" cy="72" r="1.5" fill="#6db88a" style={{ animationDelay:'0.5s' }}/>
+      <circle className="g-dot" cx="78" cy="95" r="1.8" fill="#6db88a" style={{ animationDelay:'1s' }}/>
+      <circle className="g-dot" cx="88" cy="55" r="1.2" fill="#4e9068" style={{ animationDelay:'1.5s' }}/>
+      <circle className="g-dot" cx="70" cy="80" r="1.4" fill="#4e9068" style={{ animationDelay:'2s' }}/>
+      <circle cx="80" cy="80" r="3" fill="#6db88a" opacity="0.6"/>
+      <circle cx="80" cy="80" r="1.5" fill="#c4ffda"/>
+    </svg>
+  )
+}
+
 function IconGlobe({ size = 16 }) {
   return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
     <circle cx="8" cy="8" r="6.5"/>
