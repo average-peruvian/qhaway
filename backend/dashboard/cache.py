@@ -75,8 +75,10 @@ def _fetch_species(taxon_id: int) -> dict[str, Any]:
     """, [taxon_id]).fetchone()
 
     photo_row = con.execute("""
-        SELECT p.photo_url FROM photos p
+        SELECT p.photo_url, p.license, ob.login
+        FROM photos p
         JOIN obs o ON p.observation_uuid = o.observation_uuid
+        LEFT JOIN observers ob ON ob.observer_id = o.observer_id
         WHERE o.taxon_id = ? AND p.photo_url IS NOT NULL LIMIT 1
     """, [taxon_id]).fetchone()
 
@@ -90,9 +92,13 @@ def _fetch_species(taxon_id: int) -> dict[str, Any]:
     """, [taxon_id]).fetchone()
 
     desc_row = con.execute("""
-        SELECT d.description FROM gbif_desc d
+        SELECT d.description, d.source, d.license FROM gbif_desc d
         JOIN taxon_join j ON d.gbif_id = j.gbif_id
-        WHERE j.taxon_id = ? LIMIT 1
+        WHERE j.taxon_id = ?
+          AND LOWER(d.language) IN ('en','eng','english')
+          AND LOWER(d.type) NOT IN ('materials examined','materials_examined','citation','references')
+        ORDER BY CASE WHEN LOWER(d.type) = 'description' THEN 0 ELSE 1 END
+        LIMIT 1
     """, [taxon_id]).fetchone()
 
     return {
@@ -112,5 +118,9 @@ def _fetch_species(taxon_id: int) -> dict[str, Any]:
         'vernacular_name': vernac_row[0] if vernac_row else None,
         'vernac_lang':     vernac_row[1] if vernac_row else None,
         'description':     desc_row[0]  if desc_row  else None,
+        'desc_source':     desc_row[1]  if desc_row  else None,
+        'desc_license':    desc_row[2]  if desc_row  else None,
         'photo_url':       photo_row[0] if photo_row  else None,
+        'photo_license':   photo_row[1] if photo_row  else None,
+        'photo_attribution': photo_row[2] if photo_row else None,
     }

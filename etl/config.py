@@ -11,7 +11,7 @@ GBIF_DIR  = RAW / 'gbif'
 
 # ── DuckDB ─────────────────────────────────────────────────────────────────
 DUCKDB_MEMORY  = '6GB'
-DUCKDB_THREADS = 4
+DUCKDB_THREADS = 2
 
 # ── H3 resolutions ─────────────────────────────────────────────────────────
 H3_GLOBAL   = 3   # ~1,000 km²  — mapa mundial

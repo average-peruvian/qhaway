@@ -54,5 +54,15 @@ def _register_views(con: duckdb.DuckDBPyConnection) -> None:
                 f"SELECT * FROM read_parquet('{path}')"
             )
 
+    # Observers from raw CSV (small lookup table)
+    observers_csv = _ROOT / 'data' / 'raw' / 'inaturalist' / 'observers.csv'
+    if observers_csv.exists():
+        con.execute(
+            f"CREATE OR REPLACE VIEW observers AS "
+            f"SELECT * FROM read_csv_auto('{observers_csv}', delim='\\t', ignore_errors=true)"
+        )
+
     registered = [n for n, p in views.items() if p.exists()]
+    if observers_csv.exists():
+        registered.append('observers')
     print(f"[db] Views registradas: {registered}")

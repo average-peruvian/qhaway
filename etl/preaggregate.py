@@ -11,7 +11,7 @@ Salida en data/processed/agg/:
 
 import os
 import duckdb
-from config import PROCESSED, AGG, DUCKDB_MEMORY, DUCKDB_THREADS
+from config import PROCESSED, AGG, INAT_DIR, DUCKDB_MEMORY, DUCKDB_THREADS
 
 BASE_QUERY = """
     FROM obs o
@@ -80,24 +80,51 @@ AGGREGATIONS = {
 
     'species_list': f"""
         SELECT
-            o.taxon_id,
-            t.name,
-            t.rank,
-            t.kingdom,
-            t.phylum,
-            t.class,
-            t.order,
-            t.family,
-            t.genus,
-            o.quality_grade,
-            COUNT(*)                      AS n_obs,
-            COUNT(DISTINCT o.observer_id) AS n_observers,
-            MIN(o.year)                   AS first_year,
-            MAX(o.year)                   AS last_year,
-            COUNT(DISTINCT o.h3_r3)       AS n_cells
-        {BASE_QUERY}
-        WHERE t.rank = 'species'
-        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+            s.*,
+            ph.photo_url,
+            ph.photo_license,
+            ph.photo_attribution,
+            vn.vernacular_name
+        FROM (
+            SELECT
+                o.taxon_id,
+                t.name,
+                t.rank,
+                t.kingdom,
+                t.phylum,
+                t.class,
+                t.order,
+                t.family,
+                t.genus,
+                o.quality_grade,
+                COUNT(*)                      AS n_obs,
+                COUNT(DISTINCT o.observer_id) AS n_observers,
+                MIN(o.year)                   AS first_year,
+                MAX(o.year)                   AS last_year,
+                COUNT(DISTINCT o.h3_r3)       AS n_cells
+            {BASE_QUERY}
+            WHERE t.rank = 'species'
+            GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+        ) s
+        LEFT JOIN (
+            SELECT
+                o2.taxon_id,
+                FIRST(p.photo_url)  AS photo_url,
+                FIRST(p.license)    AS photo_license,
+                FIRST(ob.login)     AS photo_attribution
+            FROM obs o2
+            JOIN photos p ON p.observation_uuid = o2.observation_uuid
+            LEFT JOIN observers ob ON ob.observer_id = o2.observer_id
+            WHERE p.photo_url IS NOT NULL
+            GROUP BY o2.taxon_id
+        ) ph ON s.taxon_id = ph.taxon_id
+        LEFT JOIN (
+            SELECT j.taxon_id, FIRST(v.vernacularName) AS vernacular_name
+            FROM taxon_join j
+            JOIN gbif_vernac v ON v.gbif_id = j.gbif_id
+            WHERE v.language IN ('es','ES','spa','en','EN','eng')
+            GROUP BY j.taxon_id
+        ) vn ON s.taxon_id = vn.taxon_id
     """,
 }
 
@@ -105,9 +132,13 @@ AGGREGATIONS = {
 def run() -> None:
     AGG.mkdir(parents=True, exist_ok=True)
 
-    obs_path  = str(PROCESSED / 'obs.parquet')
-    taxa_path = str(PROCESSED / 'taxa_enriched.parquet')
-    out_dir   = str(AGG)
+    obs_path    = str(PROCESSED / 'obs.parquet')
+    taxa_path   = str(PROCESSED / 'taxa_enriched.parquet')
+    photos_path = str(PROCESSED / 'photos.parquet')
+    join_path   = str(PROCESSED / 'taxon_join.parquet')
+    vernac_path = str(PROCESSED / 'gbif_vernacular.parquet')
+    obs_csv     = str(INAT_DIR / 'observers.csv')
+    out_dir     = str(AGG)
 
     con = duckdb.connect()
     con.execute(f"SET memory_limit='{DUCKDB_MEMORY}'")
@@ -116,6 +147,10 @@ def run() -> None:
 
     con.execute(f"CREATE VIEW obs           AS SELECT * FROM read_parquet('{obs_path}')")
     con.execute(f"CREATE VIEW taxa_enriched AS SELECT * FROM read_parquet('{taxa_path}')")
+    con.execute(f"CREATE VIEW photos        AS SELECT * FROM read_parquet('{photos_path}')")
+    con.execute(f"CREATE VIEW taxon_join    AS SELECT * FROM read_parquet('{join_path}')")
+    con.execute(f"CREATE VIEW gbif_vernac   AS SELECT * FROM read_parquet('{vernac_path}')")
+    con.execute(f"CREATE VIEW observers     AS SELECT * FROM read_csv_auto('{obs_csv}', delim='\\t', ignore_errors=true)")
 
     for name, sql in AGGREGATIONS.items():
         out = f"{out_dir}/{name}.parquet"

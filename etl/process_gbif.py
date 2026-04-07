@@ -68,11 +68,15 @@ def process_description() -> None:
     print("Description.tsv...")
     df = pd.read_csv(
         GBIF_DIR / 'Description.tsv', sep='\t',
-        usecols=['taxonID', 'description', 'language'],
+        usecols=['taxonID', 'type', 'description', 'language', 'source', 'license'],
         low_memory=False,
         on_bad_lines='skip',
     )
-    df = df[df['language'].str.lower().isin({'en', 'eng', 'english'})].copy()
+    junk_types = {'materials examined','materials_examined','citation','references'}
+    df = df[
+        (~df['type'].str.lower().fillna('').isin(junk_types)) &
+        (df['language'].str.lower().isin({'en', 'eng', 'english'}))
+    ].copy()
     df.rename(columns={'taxonID': 'gbif_id'}, inplace=True)
     _write(df, 'description')
 

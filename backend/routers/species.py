@@ -30,18 +30,22 @@ def list_species(
     if q:
         df = df[df["name"].str.contains(q, case=False, na=False)]
 
-    sort_col = {"obs": "n_obs", "species": "name", "observers": "n_observers"}.get(sort_by, "n_obs")
+    sort_col = {"obs": "n_obs", "name": "name", "observers": "n_observers"}.get(sort_by, "n_obs")
     df = df.sort_values(sort_col, ascending=(sort_col == "name"))
 
     total = len(df)
     start = (page - 1) * page_size
     page_df = df.iloc[start:start + page_size]
 
+    # to_json convierte NaN → null correctamente, luego parseamos de vuelta
+    import json
+    records = json.loads(page_df.to_json(orient="records"))
+
     return JSONResponse({
         "page":      page,
         "page_size": page_size,
         "total":     total,
-        "data":      page_df.to_dict(orient="records"),
+        "data":      records,
     })
 
 
