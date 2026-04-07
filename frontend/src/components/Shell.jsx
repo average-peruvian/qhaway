@@ -1,6 +1,7 @@
-import { useFilters } from '../hooks/useFilters'
+import { useFilters, taxaParams } from '../hooks/useFilters'
 import { useApi }     from '../hooks/useApi'
 import { api }        from '../lib/api'
+import TaxonFilter    from './TaxonFilter'
 
 const NAV = [
   { key: 'map',      label: 'Mapa global',    icon: IconGlobe },
@@ -10,16 +11,9 @@ const NAV = [
   { key: 'species',  label: 'Especies',        icon: IconCards },
 ]
 
-const KINGDOMS = ['all','Animalia','Plantae','Fungi','Chromista','Protozoa','Bacteria']
-
 export default function Shell({ activeView, viewLabel, onNav, children }) {
   const { filters, set, reset } = useFilters()
-  const { data: stats } = useApi(api.stats, {
-    kingdom:  filters.kingdom,
-    year_min: filters.year_min,
-    year_max: filters.year_max,
-    grade:    filters.grade,
-  })
+  const { data: stats } = useApi(api.stats, taxaParams(filters))
 
   return (
     <div style={s.shell}>
@@ -43,18 +37,9 @@ export default function Shell({ activeView, viewLabel, onNav, children }) {
           ))}
         </nav>
 
-        {/* Kingdom filter */}
+        {/* Taxonomic filter */}
         <div style={s.sideSection}>
-          <div style={s.sideLabel}>Reino</div>
-          {KINGDOMS.map(k => (
-            <div
-              key={k}
-              style={{ ...s.kingdomItem, ...(filters.kingdom === k ? s.kingdomActive : {}) }}
-              onClick={() => set('kingdom', k)}
-            >
-              {k === 'all' ? 'Todos' : k}
-            </div>
-          ))}
+          <TaxonFilter />
         </div>
 
         {/* Year range */}

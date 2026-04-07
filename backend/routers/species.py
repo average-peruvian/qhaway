@@ -6,15 +6,20 @@ GET /api/species/{id}  — detalle con LRU cache
 from fastapi import APIRouter, Query, HTTPException
 from fastapi.responses import JSONResponse
 import pandas as pd
+import json
 
 from dashboard.cache import AGG, get_species
+from dashboard.filters import apply_taxa
 
 router = APIRouter()
 
 
 @router.get("")
 def list_species(
-    kingdom:   str = Query("all"),
+    kingdom:   str = Query(""),
+    phylum:    str = Query(""),
+    klass:     str = Query("", alias="class"),
+    order:     str = Query(""),
     q:         str = Query(""),
     page:      int = Query(1,  ge=1),
     page_size: int = Query(24, ge=1, le=100),
@@ -23,8 +28,7 @@ def list_species(
 ):
     df: pd.DataFrame = AGG["species_list"].copy()
 
-    if kingdom != "all":
-        df = df[df["kingdom"] == kingdom]
+    df = apply_taxa(df, kingdom, phylum, klass, order)
     if grade != "all":
         df = df[df["quality_grade"] == grade]
     if q:
@@ -37,8 +41,7 @@ def list_species(
     start = (page - 1) * page_size
     page_df = df.iloc[start:start + page_size]
 
-    # to_json convierte NaN → null correctamente, luego parseamos de vuelta
-    import json
+    # to_json convierte NaN → null correctamente
     records = json.loads(page_df.to_json(orient="records"))
 
     return JSONResponse({

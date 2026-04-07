@@ -16,13 +16,17 @@ from fastapi.responses import JSONResponse
 import pandas as pd
 
 from dashboard.cache import AGG
+from dashboard.filters import apply_taxa
 
 router = APIRouter()
 
 
 @router.get("")
 def temporal(
-    kingdom:     str = Query("all"),
+    kingdom:     str = Query(""),
+    phylum:      str = Query(""),
+    klass:       str = Query("", alias="class"),
+    order:       str = Query(""),
     year_min:    int = Query(None),
     year_max:    int = Query(None),
     granularity: str = Query("monthly"),
@@ -30,8 +34,7 @@ def temporal(
 ):
     df: pd.DataFrame = AGG["temporal"].copy()
 
-    if kingdom != "all":
-        df = df[df["kingdom"] == kingdom]
+    df = apply_taxa(df, kingdom, phylum, klass, order)
     if grade != "all":
         df = df[df["quality_grade"] == grade]
     if year_min is not None:

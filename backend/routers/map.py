@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 import pandas as pd
 
 from dashboard.cache import AGG
+from dashboard.filters import apply_taxa
 
 router = APIRouter()
 
@@ -35,7 +36,10 @@ RESOLUTION_COL = {
 @router.get("/hex")
 def hex_density(
     resolution: int   = Query(3,     ge=3, le=5),
-    kingdom:    str   = Query("all"),
+    kingdom:    str   = Query(""),
+    phylum:     str   = Query(""),
+    klass:      str   = Query("", alias="class"),
+    order:      str   = Query(""),
     year_min:   int   = Query(None),
     year_max:   int   = Query(None),
     metric:     str   = Query("obs"),
@@ -44,8 +48,7 @@ def hex_density(
     df: pd.DataFrame = AGG["hex_density"].copy()
 
     # Filtros
-    if kingdom != "all":
-        df = df[df["kingdom"] == kingdom]
+    df = apply_taxa(df, kingdom, phylum, klass, order)
     if grade != "all":
         df = df[df["quality_grade"] == grade]
     if year_min is not None:

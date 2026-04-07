@@ -1,20 +1,25 @@
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 import pandas as pd
+
 from dashboard.cache import AGG
+from dashboard.filters import apply_taxa
 
 router = APIRouter()
 
+
 @router.get("")
 def stats(
-    kingdom:  str = Query("all"),
+    kingdom:  str = Query(""),
+    phylum:   str = Query(""),
+    klass:    str = Query("", alias="class"),
+    order:    str = Query(""),
     year_min: int = Query(None),
     year_max: int = Query(None),
     grade:    str = Query("all"),
 ):
     df = AGG["hex_density"].copy()
-    if kingdom != "all":
-        df = df[df["kingdom"] == kingdom]
+    df = apply_taxa(df, kingdom, phylum, klass, order)
     if grade != "all":
         df = df[df["quality_grade"] == grade]
     if year_min is not None:
@@ -23,8 +28,7 @@ def stats(
         df = df[df["year"] <= year_max]
 
     tree = AGG["taxon_tree"].copy()
-    if kingdom != "all":
-        tree = tree[tree["kingdom"] == kingdom]
+    tree = apply_taxa(tree, kingdom, phylum, klass, order)
     if grade != "all":
         tree = tree[tree["quality_grade"] == grade]
 

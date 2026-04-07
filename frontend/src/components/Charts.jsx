@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import * as Plot from '@observablehq/plot'
-import { useFilters } from '../hooks/useFilters'
+import { useFilters, taxaParams } from '../hooks/useFilters'
 import { useApi }     from '../hooks/useApi'
 import { api }        from '../lib/api'
 
@@ -11,10 +11,7 @@ export function Temporal() {
   const containerRef             = useRef(null)
 
   const params = {
-    kingdom:     filters.kingdom,
-    year_min:    filters.year_min,
-    year_max:    filters.year_max,
-    grade:       filters.grade,
+    ...taxaParams(filters),
     granularity,
   }
   const { data, loading } = useApi(api.temporal, params)
@@ -66,7 +63,7 @@ export function TaxonTree() {
   const [depth, setDepth] = useState(3)
   const containerRef      = useRef(null)
 
-  const params = { kingdom: filters.kingdom, depth, grade: filters.grade }
+  const params = { ...taxaParams(filters), depth }
   const { data, loading } = useApi(api.taxonTree, params)
 
   useEffect(() => {

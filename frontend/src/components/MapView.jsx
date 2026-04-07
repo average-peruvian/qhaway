@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import DeckGL                  from '@deck.gl/react'
 import { H3HexagonLayer }      from '@deck.gl/geo-layers'
 import Map                     from 'react-map-gl/maplibre'
-import { useFilters }          from '../hooks/useFilters'
+import { useFilters, taxaParams } from '../hooks/useFilters'
 import { useApi }              from '../hooks/useApi'
 import { api }                 from '../lib/api'
 
@@ -34,10 +34,7 @@ export default function MapView() {
   const [viewState, setViewState]= useState(INITIAL_VIEW)
 
   const params = {
-    kingdom:    filters.kingdom,
-    year_min:   filters.year_min,
-    year_max:   filters.year_max,
-    grade:      filters.grade,
+    ...taxaParams(filters),
     metric,
     resolution,
   }

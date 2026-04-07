@@ -10,7 +10,7 @@ INAT_DIR  = RAW / 'inaturalist'
 GBIF_DIR  = RAW / 'gbif'
 
 # ── DuckDB ─────────────────────────────────────────────────────────────────
-DUCKDB_MEMORY  = '6GB'
+DUCKDB_MEMORY  = '8GB'
 DUCKDB_THREADS = 2
 
 # ── H3 resolutions ─────────────────────────────────────────────────────────

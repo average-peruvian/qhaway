@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useFilters } from '../hooks/useFilters'
+import { useFilters, taxaParams } from '../hooks/useFilters'
 import { api }        from '../lib/api'
 
 const PAGE_SIZE = 48
@@ -24,21 +24,23 @@ export default function SpeciesBrowser() {
     return () => clearTimeout(t)
   }, [q])
 
+  // Reset page on filter/search/sort change
+  const filterKey = JSON.stringify(taxaParams(filters))
   useEffect(() => {
     setPage(1)
     setSelected(null)
-  }, [filters.kingdom, filters.grade, debouncedQ, sortBy])
+  }, [filterKey, debouncedQ, sortBy])
 
   useEffect(() => {
     setLoading(true)
     api.species({
-      kingdom: filters.kingdom, grade: filters.grade,
+      ...taxaParams(filters),
       q: debouncedQ, page, page_size: PAGE_SIZE, sort_by: sortBy,
     })
       .then(res => { setItems(res.data ?? []); setTotal(res.total ?? 0) })
       .catch(err => console.error('[species]', err))
       .finally(() => setLoading(false))
-  }, [filters.kingdom, filters.grade, debouncedQ, page, sortBy])
+  }, [filterKey, debouncedQ, page, sortBy])
 
   useEffect(() => {
     if (!selected) return

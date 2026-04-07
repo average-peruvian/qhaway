@@ -25,6 +25,7 @@ AGGREGATIONS = {
             o.h3_r3,
             o.h3_r5,
             t.kingdom,
+            t.phylum,
             o.quality_grade,
             o.year,
             COUNT(*)                      AS n_obs,
@@ -32,7 +33,7 @@ AGGREGATIONS = {
             COUNT(DISTINCT o.observer_id) AS n_observers
         {BASE_QUERY}
         WHERE o.h3_r3 IS NOT NULL
-        GROUP BY 1, 2, 3, 4, 5
+        GROUP BY 1, 2, 3, 4, 5, 6
     """,
 
     'country_stats': f"""
@@ -55,12 +56,13 @@ AGGREGATIONS = {
             o.year,
             o.month,
             t.kingdom,
+            t.phylum,
             o.quality_grade,
             COUNT(*)                   AS n_obs,
             COUNT(DISTINCT o.taxon_id) AS n_species
         {BASE_QUERY}
         WHERE o.year IS NOT NULL AND o.month IS NOT NULL
-        GROUP BY 1, 2, 3, 4
+        GROUP BY 1, 2, 3, 4, 5
     """,
 
     'taxon_tree': f"""
@@ -129,7 +131,8 @@ AGGREGATIONS = {
 }
 
 
-def run() -> None:
+def run(tables=None) -> None:
+    """tables: lista de nombres a generar, o None para todas."""
     AGG.mkdir(parents=True, exist_ok=True)
 
     obs_path    = str(PROCESSED / 'obs.parquet')
@@ -152,7 +155,9 @@ def run() -> None:
     con.execute(f"CREATE VIEW gbif_vernac   AS SELECT * FROM read_parquet('{vernac_path}')")
     con.execute(f"CREATE VIEW observers     AS SELECT * FROM read_csv_auto('{obs_csv}', delim='\\t', ignore_errors=true)")
 
-    for name, sql in AGGREGATIONS.items():
+    to_build = {k: v for k, v in AGGREGATIONS.items() if tables is None or k in tables}
+
+    for name, sql in to_build.items():
         out = f"{out_dir}/{name}.parquet"
         print(f"  Agregando {name}...")
         con.execute(f"""
@@ -167,4 +172,9 @@ def run() -> None:
 
 
 if __name__ == '__main__':
-    run()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--tables', nargs='+', choices=list(AGGREGATIONS.keys()),
+                        help='Tablas específicas a generar (default: todas)')
+    args = parser.parse_args()
+    run(tables=args.tables)
