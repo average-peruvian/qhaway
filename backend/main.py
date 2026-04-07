@@ -1,10 +1,15 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from dashboard.cache import init, cache_stats
 from routers import map, species, temporal, taxon, stats
+
+_ROOT = Path(__file__).parent.parent
+_BOUNDARIES = _ROOT / 'data' / 'processed' / 'boundaries'
 
 
 @asynccontextmanager
@@ -32,3 +37,9 @@ app.include_router(stats.router,    prefix="/api/stats")
 @app.get("/api/status")
 def status():
     return cache_stats()
+
+
+@app.get("/api/ecoregions/geojson")
+def ecoregions_geojson():
+    path = _BOUNDARIES / 'ecoregions.geojson'
+    return FileResponse(path, media_type="application/geo+json")

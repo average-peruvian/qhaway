@@ -8,8 +8,8 @@ from fastapi.responses import JSONResponse
 import pandas as pd
 import json
 
-from dashboard.cache import AGG, get_species
-from dashboard.filters import apply_taxa
+from dashboard.cache import AGG, ECO_H3, get_species
+from dashboard.filters import apply_taxa, apply_ecoregions
 
 router = APIRouter()
 
@@ -20,6 +20,7 @@ def list_species(
     phylum:    str = Query(""),
     klass:     str = Query("", alias="class"),
     order:     str = Query(""),
+    eco_ids:   str = Query(""),
     q:         str = Query(""),
     page:      int = Query(1,  ge=1),
     page_size: int = Query(24, ge=1, le=100),
@@ -29,6 +30,7 @@ def list_species(
     df: pd.DataFrame = AGG["species_list"].copy()
 
     df = apply_taxa(df, kingdom, phylum, klass, order)
+    df = apply_ecoregions(df, eco_ids, ECO_H3)
     if grade != "all":
         df = df[df["quality_grade"] == grade]
     if q:

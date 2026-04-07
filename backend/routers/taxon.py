@@ -7,8 +7,8 @@ from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 import pandas as pd
 
-from dashboard.cache import AGG
-from dashboard.filters import apply_taxa
+from dashboard.cache import AGG, ECO_H3, ECO_META
+from dashboard.filters import apply_taxa, apply_ecoregions
 
 router = APIRouter()
 
@@ -21,11 +21,13 @@ def taxon_tree(
     phylum:  str = Query(""),
     klass:   str = Query("", alias="class"),
     order:   str = Query(""),
+    eco_ids: str = Query(""),
     depth:   int = Query(4, ge=2, le=6),
     grade:   str = Query("all"),
 ):
     df: pd.DataFrame = AGG["taxon_tree"].copy()
     df = apply_taxa(df, kingdom, phylum, klass, order)
+    df = apply_ecoregions(df, eco_ids, ECO_H3)
     if grade != "all":
         df = df[df["quality_grade"] == grade]
 
@@ -98,3 +100,9 @@ def taxon_options(
         "class":   classes,
         "order":   orders,
     })
+
+
+@router.get("/ecoregions")
+def ecoregions_meta():
+    """Metadata de ecorregiones para el sidebar (bioma → ecorregión)."""
+    return JSONResponse(ECO_META)

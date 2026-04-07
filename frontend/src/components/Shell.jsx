@@ -2,67 +2,87 @@ import { useFilters, taxaParams } from '../hooks/useFilters'
 import { useApi }     from '../hooks/useApi'
 import { api }        from '../lib/api'
 import TaxonFilter    from './TaxonFilter'
+import GeoFilter      from './GeoFilter'
 
 const NAV = [
-  { key: 'map',      label: 'Mapa global',    icon: IconGlobe },
-  { key: 'taxon',    label: 'Taxonomía',       icon: IconTree },
-  { key: 'cobertura',     label: 'Cobertura',       icon: IconGrid },
-  { key: 'temporal', label: 'Temporal',        icon: IconChart },
-  { key: 'species',  label: 'Especies',        icon: IconCards },
+  { key: 'ecoregions', label: 'Ecorregiones',  icon: IconGlobe },
+  { key: 'sightings',  label: 'Avistamientos', icon: IconHex },
+  { key: 'taxon',      label: 'Taxonomía',     icon: IconTree },
+  { key: 'cobertura',  label: 'Cobertura',     icon: IconGrid },
+  { key: 'temporal',   label: 'Temporal',      icon: IconChart },
+  { key: 'species',    label: 'Especies',      icon: IconCards },
 ]
 
 export default function Shell({ activeView, viewLabel, onNav, children }) {
-  const { filters, set, reset } = useFilters()
+  const { filters, set, reset, toggleResearchMode } = useFilters()
   const { data: stats } = useApi(api.stats, taxaParams(filters))
+
+  const researchActive = filters.kingdom.includes('Animalia') &&
+                         filters.phylum.includes('Arthropoda') &&
+                         filters.eco_ids.length > 0
 
   return (
     <div style={s.shell}>
       {/* SIDEBAR */}
       <aside style={s.sidebar}>
-        <div style={s.globeWrap}><SidebarGlobe /></div>
-        <div style={s.logo}>
-          <div style={s.logoName}>BioExplorer</div>
-          <div style={s.logoSub}>iNaturalist · GBIF · Global</div>
-        </div>
-
-        <nav style={s.nav}>
-          {NAV.map(({ key, label, icon: Icon }) => (
-            <div
-              key={key}
-              style={{ ...s.navItem, ...(activeView === key ? s.navActive : {}) }}
-              onClick={() => onNav(key)}
-            >
-              <Icon size={15} />
-              <span style={s.navLabel}>{label}</span>
-            </div>
-          ))}
-        </nav>
-
-        {/* Taxonomic filter */}
-        <div style={s.sideSection}>
-          <TaxonFilter />
-        </div>
-
-        {/* Year range */}
-        <div style={s.sideSection}>
-          <div style={s.sideLabel}>Año</div>
-          <div style={s.yearRow}>
-            <input
-              type="number" style={s.yearInput}
-              value={filters.year_min}
-              onChange={e => set('year_min', +e.target.value)}
-              min={1950} max={filters.year_max}
-            />
-            <span style={{ color: 'var(--text-3)', fontSize: 11 }}>–</span>
-            <input
-              type="number" style={s.yearInput}
-              value={filters.year_max}
-              onChange={e => set('year_max', +e.target.value)}
-              min={filters.year_min} max={2025}
-            />
+        {/* Fixed header */}
+        <div style={s.sideHeader}>
+          <div style={s.globeWrap}><SidebarGlobe /></div>
+          <div style={s.logo}>
+            <div style={s.logoName}>BioExplorer</div>
+            <div style={s.logoSub}>iNaturalist · GBIF · Global</div>
           </div>
         </div>
 
+        {/* Scrollable middle */}
+        <div style={s.sideScroll}>
+          <nav style={s.nav}>
+            {NAV.map(({ key, label, icon: Icon }) => (
+              <div
+                key={key}
+                style={{ ...s.navItem, ...(activeView === key ? s.navActive : {}) }}
+                onClick={() => onNav(key)}
+              >
+                <Icon size={15} />
+                <span style={s.navLabel}>{label}</span>
+              </div>
+            ))}
+          </nav>
+
+          {/* Taxonomic filter */}
+          <div style={s.sideSection}>
+            <div style={s.sideLabel}>Taxonomía</div>
+            <TaxonFilter />
+          </div>
+
+          {/* Geographic filter */}
+          <div style={s.sideSection}>
+            <div style={s.sideLabel}>Geografía</div>
+            <GeoFilter />
+          </div>
+
+          {/* Year range */}
+          <div style={s.sideSection}>
+            <div style={s.sideLabel}>Año</div>
+            <div style={s.yearRow}>
+              <input
+                type="number" style={s.yearInput}
+                value={filters.year_min}
+                onChange={e => set('year_min', +e.target.value)}
+                min={1950} max={filters.year_max}
+              />
+              <span style={{ color: 'var(--text-3)', fontSize: 11 }}>–</span>
+              <input
+                type="number" style={s.yearInput}
+                value={filters.year_max}
+                onChange={e => set('year_max', +e.target.value)}
+                min={filters.year_min} max={2025}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed footer */}
         <div style={s.footer}>
           <div style={s.footerRow}><span>Observaciones</span><span style={s.footerVal}>{stats ? (stats.n_obs / 1e6).toFixed(1) + 'M' : '–'}</span></div>
           <div style={s.footerRow}><span>Especies</span>    <span style={s.footerVal}>{stats ? stats.n_species.toLocaleString() : '–'}</span></div>
@@ -93,6 +113,13 @@ export default function Shell({ activeView, viewLabel, onNav, children }) {
           >
             all grades
           </Chip>
+          <div style={s.topbarDivider} />
+          <Chip
+            active={researchActive}
+            onClick={toggleResearchMode}
+          >
+            investigation
+          </Chip>
         </div>
         <div style={s.content}>
           {children}
@@ -114,11 +141,13 @@ function Chip({ children, active, onClick }) {
 // ── Inline styles ──────────────────────────────────────────────────────────
 const s = {
   shell:   { display:'flex', height:'100vh' },
-  sidebar: { width:220, flexShrink:0, background:'var(--surface)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column' },
+  sidebar: { width:220, flexShrink:0, background:'var(--surface)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column', overflow:'hidden' },
+  sideHeader: { flexShrink:0, borderBottom:'1px solid var(--border)' },
+  sideScroll: { flex:1, overflowY:'auto', overflowX:'hidden' },
   main:    { flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },
 
-  logo:    { padding:'10px 20px 14px', borderBottom:'1px solid var(--border)' },
-  globeWrap:{ padding:'16px 0 0', display:'flex', justifyContent:'center' },
+  logo:    { padding:'10px 20px 14px' },
+  globeWrap:{ padding:'12px 0 0', display:'flex', justifyContent:'center' },
   logoName:{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, letterSpacing:'0.08em', color:'var(--accent-glow)', textTransform:'uppercase' },
   logoSub: { fontSize:10, color:'var(--text-3)', letterSpacing:'0.12em', marginTop:2 },
 
@@ -134,13 +163,14 @@ const s = {
   yearRow:    { display:'flex', alignItems:'center', gap:8 },
   yearInput:  { background:'var(--surface-2)', border:'1px solid var(--border-2)', color:'var(--text)', fontFamily:'var(--font-mono)', fontSize:12, padding:'4px 8px', width:70, outline:'none' },
 
-  footer:    { marginTop:'auto', padding:'14px 20px', borderTop:'1px solid var(--border)', fontSize:11, color:'var(--text-3)' },
+  footer:    { flexShrink:0, padding:'14px 20px', borderTop:'1px solid var(--border)', fontSize:11, color:'var(--text-3)' },
   footerRow: { display:'flex', justifyContent:'space-between', lineHeight:1.8 },
   footerVal: { color:'var(--text-2)', fontWeight:500 },
 
   topbar:      { height:50, background:'var(--surface)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 20px', gap:10, flexShrink:0 },
   viewTitle:   { fontFamily:'var(--font-display)', fontSize:14, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-2)' },
   topbarSpacer:{ flex:1 },
+  topbarDivider:{ width:1, height:20, background:'var(--border-2)' },
   chip:        { display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', border:'1px solid var(--border-2)', borderColor:'var(--border-2)', fontSize:11, color:'var(--text-2)', cursor:'pointer', background:'transparent' },
   chipActive:  { borderColor:'var(--accent)', color:'var(--accent-glow)', background:'rgba(78,144,104,0.08)' },
   chipDot:     { width:6, height:6, borderRadius:'50%', background:'currentColor' },
@@ -151,7 +181,7 @@ const s = {
 // ── SVG icons ──────────────────────────────────────────────────────────────
 function SidebarGlobe() {
   return (
-    <svg width="180" height="180" viewBox="0 0 160 160" style={{ display:'block', margin:'0 auto' }}>
+    <svg width="180" height="130" viewBox="20 20 120 120" style={{ display:'block', margin:'0 auto' }}>
       <style>{`
         @keyframes globe-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes globe-pulse { 0%,100% { opacity:0.4; } 50% { opacity:0.8; } }
@@ -185,6 +215,11 @@ function IconGlobe({ size = 16 }) {
   return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
     <circle cx="8" cy="8" r="6.5"/>
     <path d="M1.5 8h13M8 1.5C6 4 5 6 5 8s1 4 3 6.5M8 1.5C10 4 11 6 11 8s-1 4-3 6.5"/>
+  </svg>
+}
+function IconHex({ size = 16 }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z"/>
   </svg>
 }
 function IconTree({ size = 16 }) {

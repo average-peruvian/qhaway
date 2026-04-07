@@ -2,6 +2,7 @@
 Capa de caché del dashboard.
 """
 
+import json
 import pandas as pd
 import pyarrow.parquet as pq
 from cachetools import LRUCache
@@ -12,8 +13,13 @@ from .db import get_con
 
 _ROOT = Path(__file__).parent.parent.parent
 _AGG  = _ROOT / 'data' / 'processed' / 'agg'
+_BOUNDARIES = _ROOT / 'data' / 'processed' / 'boundaries'
 
 AGG: dict[str, pd.DataFrame] = {}
+
+# Ecoregion data
+ECO_META: list[dict] = []           # [{eco_id, eco_name, biome_num, biome_name, realm}]
+ECO_H3: dict[int, set[str]] = {}    # eco_id → set of h3_r3 cells
 
 _AGG_FILES = [
     'hex_density',
@@ -28,6 +34,7 @@ _species_cache: LRUCache = LRUCache(maxsize=5_000)
 
 def init() -> None:
     _load_agg_tables()
+    _load_ecoregions()
     get_con()
     print("[cache] Listo.")
 
@@ -46,6 +53,8 @@ def cache_stats() -> dict:
         'species_cache_maxsize': _species_cache.maxsize,
         'agg_tables_loaded':     list(AGG.keys()),
         'agg_total_rows':        {k: len(v) for k, v in AGG.items()},
+        'ecoregions':            len(ECO_META),
+        'ecoregion_h3_cells':    sum(len(v) for v in ECO_H3.values()),
     }
 
 
@@ -59,6 +68,28 @@ def _load_agg_tables() -> None:
         AGG[name] = pq.read_table(path).to_pandas()
         mb = AGG[name].memory_usage(deep=True).sum() / 1e6
         print(f"  ✓  {name}: {len(AGG[name]):,} filas  ({mb:.1f} MB en RAM)")
+
+
+def _load_ecoregions() -> None:
+
+    meta_path = _BOUNDARIES / 'ecoregions_meta.json'
+    h3_path   = _BOUNDARIES / 'ecoregions_h3_r3.parquet'
+
+    if not meta_path.exists() or not h3_path.exists():
+        print("[cache] WARN: ecoregions no encontrados — ejecuta etl/build_ecoregions.py")
+        return
+
+    print("[cache] Cargando ecorregiones...")
+    with open(meta_path) as f:
+        ECO_META.clear()
+        ECO_META.extend(json.load(f))
+    print(f"  ✓  meta: {len(ECO_META)} ecorregiones")
+
+    h3_df = pq.read_table(h3_path).to_pandas()
+    ECO_H3.clear()
+    for eco_id, grp in h3_df.groupby('eco_id'):
+        ECO_H3[int(eco_id)] = set(grp['h3_r3'].tolist())
+    print(f"  ✓  h3: {len(ECO_H3)} ecorregiones, {h3_df['h3_r3'].nunique():,} celdas únicas")
 
 
 def _fetch_species(taxon_id: int) -> dict[str, Any]:

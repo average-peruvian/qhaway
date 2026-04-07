@@ -16,8 +16,8 @@ from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 import pandas as pd
 
-from dashboard.cache import AGG
-from dashboard.filters import apply_taxa
+from dashboard.cache import AGG, ECO_H3
+from dashboard.filters import apply_taxa, apply_ecoregions
 
 router = APIRouter()
 
@@ -40,6 +40,7 @@ def hex_density(
     phylum:     str   = Query(""),
     klass:      str   = Query("", alias="class"),
     order:      str   = Query(""),
+    eco_ids:    str   = Query(""),
     year_min:   int   = Query(None),
     year_max:   int   = Query(None),
     metric:     str   = Query("obs"),
@@ -49,6 +50,7 @@ def hex_density(
 
     # Filtros
     df = apply_taxa(df, kingdom, phylum, klass, order)
+    df = apply_ecoregions(df, eco_ids, ECO_H3)
     if grade != "all":
         df = df[df["quality_grade"] == grade]
     if year_min is not None:

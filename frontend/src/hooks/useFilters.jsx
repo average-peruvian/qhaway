@@ -7,9 +7,22 @@ const DEFAULTS = {
   phylum:   [],
   class:    [],
   order:    [],
+  eco_ids:  [],
   year_min: 2010,
   year_max: 2025,
   grade:    'research',
+}
+
+// ECO_IDs amazónicos Dinerstein 2017
+const AMAZON_ECO_IDS = [480,508,465,466,490,464,484,498,446,570,483,460,512,505,444,565,476,469,496,474,497,463,481,518,507,511,473,482,503,467,493,479]
+
+// Preset "Modo investigación": Arthropoda amazónico
+export const RESEARCH_PRESET = {
+  kingdom: ['Animalia'],
+  phylum:  ['Arthropoda'],
+  class:   [],
+  order:   [],
+  eco_ids: AMAZON_ECO_IDS,
 }
 
 export function FiltersProvider({ children }) {
@@ -50,8 +63,38 @@ export function FiltersProvider({ children }) {
 
   const reset = useCallback(() => setFilters(DEFAULTS), [])
 
+  // Toggle research mode preset
+  const toggleResearchMode = useCallback(() => {
+    setFilters(prev => {
+      const isActive = prev.kingdom.includes('Animalia') &&
+                       prev.phylum.includes('Arthropoda') &&
+                       prev.eco_ids.length === AMAZON_ECO_IDS.length
+      if (isActive) return DEFAULTS
+      return { ...prev, ...RESEARCH_PRESET }
+    })
+  }, [])
+
+  // Toggle a single eco_id
+  const toggleEcoregion = useCallback((ecoId) => {
+    setFilters(prev => {
+      const arr = prev.eco_ids
+      const next = arr.includes(ecoId)
+        ? arr.filter(v => v !== ecoId)
+        : [...arr, ecoId]
+      return { ...prev, eco_ids: next }
+    })
+  }, [])
+
+  // Set multiple eco_ids at once (for biome selection)
+  const setEcoregions = useCallback((ecoIds) => {
+    setFilters(prev => ({ ...prev, eco_ids: ecoIds }))
+  }, [])
+
   return (
-    <FiltersCtx.Provider value={{ filters, set, toggleTaxon, clearLevel, reset }}>
+    <FiltersCtx.Provider value={{
+      filters, set, toggleTaxon, clearLevel, reset,
+      toggleResearchMode, toggleEcoregion, setEcoregions,
+    }}>
       {children}
     </FiltersCtx.Provider>
   )
@@ -64,15 +107,15 @@ export function useFilters() {
 }
 
 /**
- * Builds query params object from taxa filter arrays.
- * Empty arrays are omitted (= no filter at that level).
+ * Builds query params object from all filter arrays.
  */
 export function taxaParams(filters) {
   const p = {}
-  if (filters.kingdom.length) p.kingdom = filters.kingdom.join(',')
-  if (filters.phylum.length)  p.phylum = filters.phylum.join(',')
-  if (filters.class.length)   p.class = filters.class.join(',')
-  if (filters.order.length)   p.order = filters.order.join(',')
+  if (filters.kingdom.length)  p.kingdom  = filters.kingdom.join(',')
+  if (filters.phylum.length)   p.phylum   = filters.phylum.join(',')
+  if (filters.class.length)    p.class    = filters.class.join(',')
+  if (filters.order.length)    p.order    = filters.order.join(',')
+  if (filters.eco_ids.length)  p.eco_ids  = filters.eco_ids.join(',')
   p.year_min = filters.year_min
   p.year_max = filters.year_max
   p.grade    = filters.grade
