@@ -1,4 +1,4 @@
-# BioExplorer
+# Qhaway
 
 Dashboard interactivo para exploración de datos de biodiversidad a escala global, con énfasis en el análisis de sesgo taxonómico y cobertura espacial de muestreo en la región amazónica transfronteriza.
 
@@ -6,7 +6,7 @@ Desarrollado como parte de una tesis de pregrado sobre clasificación open-vocab
 
 ## Descripción general
 
-BioExplorer integra datos de iNaturalist Open Data (~300M observaciones), el GBIF Backbone Taxonomy y las ecorregiones globales de Dinerstein et al. (2017) en una aplicación de página única que permite filtrado multi-escala por taxonomía, geografía y tiempo.
+Qhaway integra datos de iNaturalist Open Data (~300M observaciones), el GBIF Backbone Taxonomy y las ecorregiones globales de Dinerstein et al. (2017) en una aplicación de página única que permite filtrado multi-escala por taxonomía, geografía y tiempo.
 
 El sistema está diseñado para ejecutarse en hardware modesto. Todas las tablas agregadas se pre-computan durante la fase de ETL y se cargan en RAM al inicio (~1GB), lo que permite respuestas sub-segundo sin necesidad de un servidor de base de datos tradicional.
 

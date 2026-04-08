@@ -29,7 +29,7 @@ export default function Shell({ activeView, viewLabel, onNav, children }) {
         <div style={s.sideHeader}>
           <div style={s.globeWrap}><SidebarGlobe /></div>
           <div style={s.logo}>
-            <div style={s.logoName}>BioExplorer</div>
+            <div style={s.logoName}>Qhaway</div>
             <div style={s.logoSub}>iNaturalist · GBIF</div>
           </div>
         </div>
