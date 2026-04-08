@@ -2,6 +2,13 @@
 __pycache__/
 *.py[codz]
 *$py.class
+data/*
+temp/*
+.*/
+# DuckDB temporal
+*.duckdb
+*.wal
+*/node_modules/
 
 # C extensions
 *.so
@@ -14,7 +21,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/

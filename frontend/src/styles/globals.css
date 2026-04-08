@@ -1,0 +1,41 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #07090a;
+  --surface:      #0d120e;
+  --surface-2:    #131b14;
+  --surface-3:    #192119;
+  --border:       #1e2e1f;
+  --border-2:     #28382a;
+  --accent:       #4e9068;
+  --accent-dim:   #2d5c3f;
+  --accent-glow:  #6db88a;
+  --warm:         #b87d3e;
+  --warm-dim:     #7a5028;
+  --text:         #c0d4c0;
+  --text-2:       #6e8e6e;
+  --text-3:       #3e5a3e;
+  --danger:       #a05050;
+  --info:         #4a72a0;
+
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono:    'IBM Plex Mono', monospace;
+  --font-serif:   'Lora', serif;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  overflow: hidden;
+}
+
+/* Scrollbar global */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+/* Maplibre overrides */
+.maplibregl-ctrl-bottom-left,
+.maplibregl-ctrl-bottom-right { display: none; }
