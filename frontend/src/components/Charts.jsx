@@ -216,15 +216,123 @@ const s = {
 }
 
 // ── Cobertura (Sesgo taxonómico — Troudet 2017) ───────────────────────────
-// Placeholder hasta implementar métricas completas
 export function Cobertura() {
+  const { filters }            = useFilters()
+  const [metric, setMetric]    = useState('deviation')
+  const deviationRef           = useRef(null)
+  const coverageRef            = useRef(null)
+
+  const params = { ...taxaParams(filters) }
+  const { data, loading }      = useApi(api.biasTroudet, params)
+
+  // Deviation chart
+  useEffect(() => {
+    if (!data?.data?.length || !deviationRef.current || metric !== 'deviation') return
+    const el = deviationRef.current
+    el.innerHTML = ''
+
+    const rows = data.data.slice(0, 30)
+
+    const chart = Plot.plot({
+      style:       { background:'transparent', color:'#6e8e6e', fontFamily:'IBM Plex Mono' },
+      width:       el.clientWidth,
+      height:      Math.max(300, rows.length * 22),
+      marginLeft:  140,
+      marginRight: 60,
+      x:           { label:'desviación del muestreo ideal', grid:true },
+      y:           { label:null },
+      color:       { scheme:'BrBG', domain:[-1, 1], type:'linear' },
+      marks: [
+        Plot.barX(rows, {
+          x:    'deviation',
+          y:    'class',
+          fill: d => d.deviation > 0 ? '#4e9068' : '#a05050',
+          sort: { y:'-x' },
+        }),
+        Plot.text(rows, {
+          x:          'deviation',
+          y:          'class',
+          text:       d => (d.deviation > 0 ? '+' : '') + Math.round(d.deviation).toLocaleString(),
+          dx:         d => d.deviation >= 0 ? 4 : -4,
+          textAnchor: d => d.deviation >= 0 ? 'start' : 'end',
+          fontSize:   9,
+          fill:       '#6e8e6e',
+        }),
+        Plot.ruleX([0], { stroke:'#3e5a3e' }),
+      ],
+    })
+    el.appendChild(chart)
+    return () => chart.remove()
+  }, [data, metric])
+
+  // Coverage chart (p1, p20, p20d)
+  useEffect(() => {
+    if (!data?.data?.length || !coverageRef.current || metric !== 'coverage') return
+    const el = coverageRef.current
+    el.innerHTML = ''
+
+    const classes = data.data.slice(0, 30)
+    const rows = []
+    for (const d of classes) {
+      rows.push({ class:d.class, metric:'p≥1 obs',     value:d.p1 })
+      rows.push({ class:d.class, metric:'p≥20 obs',    value:d.p20 })
+      rows.push({ class:d.class, metric:'p≥20 celdas', value:d.p20d })
+    }
+
+    const chart = Plot.plot({
+      style:       { background:'transparent', color:'#6e8e6e', fontFamily:'IBM Plex Mono' },
+      width:       el.clientWidth,
+      height:      Math.max(400, classes.length * 28),
+      marginLeft:  140,
+      marginRight: 40,
+      x:           { label:'% especies', domain:[0, 100], grid:true },
+      y:           { label:null },
+      fy:          { label:null, padding:0.15 },
+      color:       { domain:['p≥1 obs','p≥20 obs','p≥20 celdas'], range:['#6db88a','#4e9068','#2d5c3f'], legend:true },
+      marks: [
+        Plot.barX(rows, {
+          x:    'value',
+          fy:   'class',
+          y:    'metric',
+          fill: 'metric',
+          sort: { fy: { value:'-x', reduce:'max' } },
+        }),
+        Plot.text(rows, {
+          x:          'value',
+          fy:         'class',
+          y:          'metric',
+          text:       d => d.value.toFixed(0) + '%',
+          dx:         4,
+          textAnchor: 'start',
+          fontSize:   9,
+          fill:       '#6e8e6e',
+        }),
+      ],
+    })
+    el.appendChild(chart)
+    return () => chart.remove()
+  }, [data, metric])
+
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', alignItems:'center', justifyContent:'center', color:'var(--text-3)', gap:12 }}>
-      <div style={{ fontSize:32, opacity:0.3 }}>◈</div>
-      <div style={{ fontFamily:'var(--font-display)', fontSize:13, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase' }}>
-        Sesgo taxonómico
+    <div style={{ display:'flex', flexDirection:'column', height:'100%' }}>
+      <div style={s.controls}>
+        <span style={s.label}>Sesgo taxonómico — Troudet 2017</span>
+        <Chip active={metric === 'deviation'} onClick={() => setMetric('deviation')}>desviación</Chip>
+        <Chip active={metric === 'coverage'} onClick={() => setMetric('coverage')}>cobertura</Chip>
+        {loading && <span style={s.loading}>cargando...</span>}
+        {data && (
+          <span style={{ fontSize:10, color:'var(--text-3)', marginLeft:'auto', fontFamily:'var(--font-mono)' }}>
+            {data.n_classes} clases · {data.total_species?.toLocaleString()} spp · {(data.total_obs / 1e6).toFixed(1)}M obs
+          </span>
+        )}
       </div>
-      <div style={{ fontSize:11 }}>Métricas Troudet et al. 2017 — próximamente</div>
+      <div style={{ flex:1, overflowY:'auto', padding:'8px 20px' }}>
+        {metric === 'deviation' && <div ref={deviationRef} />}
+        {metric === 'coverage' && <div ref={coverageRef} />}
+        {!loading && (!data?.data?.length) && (
+          <div style={{ padding:32, color:'var(--text-3)', fontSize:12, textAlign:'center' }}>Sin datos para los filtros seleccionados</div>
+        )}
+      </div>
     </div>
   )
 }

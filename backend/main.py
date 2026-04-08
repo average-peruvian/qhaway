@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from dashboard.cache import init, cache_stats
-from routers import map, species, temporal, taxon, stats
+from routers import map, species, temporal, taxon, stats, bias
 
 _ROOT = Path(__file__).parent.parent
 _BOUNDARIES = _ROOT / 'data' / 'processed' / 'boundaries'
@@ -32,6 +32,7 @@ app.include_router(species.router,  prefix="/api/species")
 app.include_router(temporal.router, prefix="/api/temporal")
 app.include_router(taxon.router,    prefix="/api/taxon")
 app.include_router(stats.router,    prefix="/api/stats")
+app.include_router(bias.router,     prefix="/api/bias")
 
 
 @app.get("/api/status")
