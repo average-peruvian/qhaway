@@ -187,5 +187,4 @@ taxa-fetch/
 - Troudet, Y., Grandcolas, P., Blin, A., Vignes-Lebbe, R., & Legendre, F. (2017). Taxonomic bias in biodiversity data and societal preferences. *Scientific Reports*, 7, 9132. https://doi.org/10.1038/s41598-017-09084-6
 - Dinerstein, E., Olson, D., Joshi, A., et al. (2017). An ecoregion-based approach to protecting half the terrestrial realm. *BioScience*, 67(6), 534–545. https://doi.org/10.1093/biosci/bix014
 - Eva, H. D., Huber, O., Achard, F., et al. (2005). A proposal for defining the geographical boundaries of Amazonia. Joint Research Centre, European Commission / ACTO.
-- Cardoso, P., et al. (2023). Insects in protected areas. *One Earth*.
-- van Proosdij, A. S. J., Sosef, M. S. M., Wieringa, J. J., & Raes, N. (2016). Minimum required number of specimen records to develop accurate species distribution models. *Ecography*, 39(6), 542–552. https://doi.org/10.1111/ecog.01509
+- Van Proosdij, A. S. J., Sosef, M. S. M., Wieringa, J. J., & Raes, N. (2016). Minimum required number of specimen records to develop accurate species distribution models. *Ecography*, 39(6), 542–552. https://doi.org/10.1111/ecog.01509
