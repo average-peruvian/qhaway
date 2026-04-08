@@ -87,7 +87,7 @@ export default function EcoregionsView() {
     <div style={{ width:'100%', height:'100%', position:'relative' }}>
       {/* Controls */}
       <div style={s.controls}>
-        <span style={s.label}>Ecorregiones Dinerstein 2017</span>
+        <span style={s.label}>Biomas y ecorregiones — Dinerstein 2017</span>
         {loading && <span style={s.loadingDot} title="cargando..." />}
         <div style={{ flex:1 }} />
         {selectedSet.size > 0 && (
