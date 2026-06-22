@@ -1,31 +1,36 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:           #07090a;
-  --surface:      #0d120e;
-  --surface-2:    #131b14;
-  --surface-3:    #192119;
-  --border:       #1e2e1f;
-  --border-2:     #28382a;
-  --accent:       #4e9068;
-  --accent-dim:   #2d5c3f;
-  --accent-glow:  #6db88a;
+  --bg:           #f4f2ec;
+  --surface:      #b4d9b3;
+  --surface-2:    #a5cca4;
+  --surface-3:    #e3e0d8;
+  --border:       #8aba88;
+  --border-2:     #d4d0c8;
+  --accent:       #7aaa6e;
+  --accent-dim:   #5a8c4e;
+  --accent-glow:  #2d5c3f;
   --warm:         #b87d3e;
   --warm-dim:     #7a5028;
-  --text:         #c0d4c0;
-  --text-2:       #6e8e6e;
-  --text-3:       #3e5a3e;
+  --text:         #353535;
+  --text-2:       #6b7a62;
+  --text-3:       #a09a8e;
   --danger:       #a05050;
   --info:         #4a72a0;
 
-  --font-display: 'Barlow Condensed', sans-serif;
+  --font-display: 'Lora', Georgia, serif;
   --font-mono:    'IBM Plex Mono', monospace;
-  --font-serif:   'Lora', serif;
+  --font-serif:   'Lora', Georgia, serif;
+
+  --sidebar-bg:   #b4d9b3;
+  --main-bg:      #f4f2ec;
+  --topbar-bg:    #edebe5;
+  --map-bg:       #e8e6de;
 }
 
 html, body, #root {
   height: 100%;
-  background: var(--bg);
+  background: var(--main-bg);
   color: var(--text);
   font-family: var(--font-mono);
   overflow: hidden;
@@ -33,7 +38,7 @@ html, body, #root {
 
 /* Scrollbar global */
 ::-webkit-scrollbar       { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-track { background: var(--main-bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
 
 /* Maplibre overrides */

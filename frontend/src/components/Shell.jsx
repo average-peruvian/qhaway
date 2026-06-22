@@ -27,10 +27,12 @@ export default function Shell({ activeView, viewLabel, onNav, children }) {
       <aside style={s.sidebar}>
         {/* Fixed header */}
         <div style={s.sideHeader}>
-          <div style={s.globeWrap}><SidebarGlobe /></div>
+          <div style={s.globeWrap}>
+            <img src="/logo_moth.png" alt="Qhaway" style={s.logoImg} />
+          </div>
           <div style={s.logo}>
             <div style={s.logoName}>Qhaway</div>
-            <div style={s.logoSub}>iNaturalist · GBIF</div>
+            <div style={s.logoSub}>iNaturalist · GBIF · WWF</div>
           </div>
         </div>
 
@@ -141,38 +143,39 @@ function Chip({ children, active, onClick }) {
 // ── Inline styles ──────────────────────────────────────────────────────────
 const s = {
   shell:   { display:'flex', height:'100vh' },
-  sidebar: { width:220, flexShrink:0, background:'var(--surface)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column', overflow:'hidden' },
+  sidebar: { width:220, flexShrink:0, background:'var(--sidebar-bg)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column', overflow:'hidden' },
   sideHeader: { flexShrink:0, borderBottom:'1px solid var(--border)' },
   sideScroll: { flex:1, overflowY:'auto', overflowX:'hidden' },
   main:    { flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },
 
-  logo:    { padding:'10px 20px 14px' },
-  globeWrap:{ padding:'12px 0 0', display:'flex', justifyContent:'center' },
-  logoName:{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, letterSpacing:'0.08em', color:'var(--accent-glow)', textTransform:'uppercase' },
-  logoSub: { fontSize:10, color:'var(--text-3)', letterSpacing:'0.12em', marginTop:2 },
+  logo:    { padding:'6px 20px 14px', textAlign:'center' },
+  globeWrap:{ padding:'16px 0 0', display:'flex', justifyContent:'center' },
+  logoImg: { width:160, height:'auto', display:'block', margin:'0 auto' },
+  logoName:{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:700, letterSpacing:'0.05em', color:'#1a3a1e' },
+  logoSub: { fontSize:9, color:'#3d6e35', letterSpacing:'0.08em', marginTop:2, fontStyle:'italic' },
 
   nav:     { padding:'12px 0' },
-  navItem: { display:'flex', alignItems:'center', gap:12, padding:'10px 20px', cursor:'pointer', borderLeft:'2px solid transparent', color:'var(--text-2)', fontFamily:'var(--font-display)', fontSize:13, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', transition:'background 0.15s' },
-  navActive:{ background:'var(--surface-3)', borderLeftColor:'var(--accent)', color:'var(--accent-glow)' },
+  navItem: { display:'flex', alignItems:'center', gap:12, padding:'10px 20px', cursor:'pointer', borderLeft:'2px solid transparent', color:'#2d5c3f', fontFamily:'var(--font-display)', fontSize:13, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', transition:'background 0.15s' },
+  navActive:{ background:'rgba(255,255,255,0.25)', borderLeftColor:'#2d5c3f', color:'#1a3a1e' },
   navLabel:{ fontFamily:'var(--font-display)', fontSize:13, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' },
 
   sideSection:{ padding:'12px 20px', borderTop:'1px solid var(--border)' },
-  sideLabel:  { fontSize:10, color:'var(--text-3)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 },
-  kingdomItem:{ fontSize:12, color:'var(--text-2)', padding:'4px 0', cursor:'pointer' },
-  kingdomActive:{ color:'var(--accent-glow)' },
+  sideLabel:  { fontSize:10, color:'#3d6e35', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8, fontFamily:'var(--font-mono)' },
+  kingdomItem:{ fontSize:12, color:'#2d5c3f', padding:'4px 0', cursor:'pointer' },
+  kingdomActive:{ color:'#1a3a1e', fontWeight:600 },
   yearRow:    { display:'flex', alignItems:'center', gap:8 },
-  yearInput:  { background:'var(--surface-2)', border:'1px solid var(--border-2)', color:'var(--text)', fontFamily:'var(--font-mono)', fontSize:12, padding:'4px 8px', width:70, outline:'none' },
+  yearInput:  { background:'rgba(255,255,255,0.3)', border:'1px solid var(--border)', color:'#1a3a1e', fontFamily:'var(--font-mono)', fontSize:12, padding:'4px 8px', width:70, outline:'none' },
 
-  footer:    { flexShrink:0, padding:'14px 20px', borderTop:'1px solid var(--border)', fontSize:11, color:'var(--text-3)' },
+  footer:    { flexShrink:0, padding:'14px 20px', borderTop:'1px solid var(--border)', fontSize:11, color:'#3d6e35', fontFamily:'var(--font-mono)' },
   footerRow: { display:'flex', justifyContent:'space-between', lineHeight:1.8 },
-  footerVal: { color:'var(--text-2)', fontWeight:500 },
+  footerVal: { color:'#1a3a1e', fontWeight:500 },
 
-  topbar:      { height:50, background:'var(--surface)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 20px', gap:10, flexShrink:0 },
-  viewTitle:   { fontFamily:'var(--font-display)', fontSize:14, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-2)' },
+  topbar:      { height:50, background:'var(--topbar-bg)', borderBottom:'1px solid var(--border-2)', display:'flex', alignItems:'center', padding:'0 20px', gap:10, flexShrink:0 },
+  viewTitle:   { fontFamily:'var(--font-display)', fontSize:14, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text)' },
   topbarSpacer:{ flex:1 },
   topbarDivider:{ width:1, height:20, background:'var(--border-2)' },
   chip:        { display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', border:'1px solid var(--border-2)', borderColor:'var(--border-2)', fontSize:11, color:'var(--text-2)', cursor:'pointer', background:'transparent' },
-  chipActive:  { borderColor:'var(--accent)', color:'var(--accent-glow)', background:'rgba(78,144,104,0.08)' },
+  chipActive:  { borderColor:'var(--accent)', color:'var(--accent-glow)', background:'rgba(122,170,110,0.12)' },
   chipDot:     { width:6, height:6, borderRadius:'50%', background:'currentColor' },
 
   content: { flex:1, overflow:'hidden', position:'relative' },

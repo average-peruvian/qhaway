@@ -4,8 +4,7 @@ import { GeoJsonLayer }    from '@deck.gl/layers'
 import Map                 from 'react-map-gl/maplibre'
 import { useFilters }      from '../hooks/useFilters'
 import { api }             from '../lib/api'
-
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+import { MAP_STYLE_NO_LABELS } from '../lib/mapConfig'
 
 const INITIAL_VIEW = {
   longitude: 0, latitude: 10,
@@ -30,8 +29,8 @@ const BIOME_COLORS = {
   14: [40, 60, 50],     // Mangroves
 }
 
-const SELECTED_COLOR = [78, 144, 104]
-const HOVER_COLOR = [109, 184, 138]
+const SELECTED_COLOR = [45, 92, 63]
+const HOVER_COLOR = [122, 170, 110]
 
 export default function EcoregionsView() {
   const { filters, toggleEcoregion } = useFilters()
@@ -66,7 +65,7 @@ export default function EcoregionsView() {
     getLineColor: f => {
       const ecoId = f.properties?.eco_id
       if (selectedSet.has(ecoId)) return [...SELECTED_COLOR, 255]
-      return [40, 60, 40, 80]
+      return [100, 120, 90, 100]
     },
     getLineWidth: f => selectedSet.has(f.properties?.eco_id) ? 2 : 0.5,
     lineWidthUnits: 'pixels',
@@ -87,7 +86,7 @@ export default function EcoregionsView() {
     <div style={{ width:'100%', height:'100%', position:'relative' }}>
       {/* Controls */}
       <div style={s.controls}>
-        <span style={s.label}>Biomas y ecorregiones — Dinerstein 2017</span>
+        <span style={s.label}>Ecorregiones Dinerstein 2017</span>
         {loading && <span style={s.loadingDot} title="cargando..." />}
         <div style={{ flex:1 }} />
         {selectedSet.size > 0 && (
@@ -102,7 +101,7 @@ export default function EcoregionsView() {
         layers={layer ? [layer] : []}
         style={{ position:'absolute', inset:0, top:44 }}
       >
-        <Map mapStyle={MAP_STYLE} />
+        <Map mapStyle={MAP_STYLE_NO_LABELS} />
       </DeckGL>
 
       {/* Tooltip */}
@@ -146,17 +145,17 @@ const BIOME_LABELS = {
 }
 
 const s = {
-  controls:  { position:'absolute', top:0, left:0, right:0, zIndex:10, display:'flex', alignItems:'center', gap:8, padding:'6px 16px', background:'var(--surface)', borderBottom:'1px solid var(--border)', height:44 },
+  controls:  { position:'absolute', top:0, left:0, right:0, zIndex:10, display:'flex', alignItems:'center', gap:8, padding:'6px 16px', background:'var(--topbar-bg)', borderBottom:'1px solid var(--border)', height:44 },
   label:     { fontSize:12, color:'var(--text-2)', fontFamily:'var(--font-display)', fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' },
   loadingDot:{ width:6, height:6, borderRadius:'50%', background:'var(--accent)', marginLeft:4, opacity:.7 },
   selectedCount: { fontSize:11, color:'var(--accent-glow)', fontFamily:'var(--font-mono)' },
 
-  tooltip:      { position:'absolute', bottom:60, left:20, zIndex:20, background:'rgba(13,18,14,0.95)', border:'1px solid var(--border-2)', padding:'10px 14px', pointerEvents:'none', maxWidth:300 },
+  tooltip:      { position:'absolute', bottom:60, left:20, zIndex:20, background:'rgba(237,235,229,0.95)', border:'1px solid var(--border-2)', padding:'10px 14px', pointerEvents:'none', maxWidth:300 },
   tooltipName:  { fontSize:12, color:'var(--text)', fontWeight:500, marginBottom:2 },
   tooltipBiome: { fontSize:11, color:'var(--text-2)' },
   tooltipRealm: { fontSize:10, color:'var(--text-3)', marginTop:2, fontStyle:'italic' },
 
-  legend:       { position:'absolute', bottom:20, right:20, zIndex:10, background:'rgba(13,18,14,0.9)', border:'1px solid var(--border-2)', padding:'10px 14px', maxHeight:300, overflowY:'auto' },
+  legend:       { position:'absolute', bottom:20, right:20, zIndex:10, background:'rgba(237,235,229,0.9)', border:'1px solid var(--border-2)', padding:'10px 14px', maxHeight:300, overflowY:'auto' },
   legendTitle:  { fontFamily:'var(--font-display)', fontSize:11, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-2)', marginBottom:6 },
   legendItem:   { display:'flex', alignItems:'center', gap:6, marginBottom:3 },
   legendSwatch: { width:10, height:10, borderRadius:1, flexShrink:0 },
