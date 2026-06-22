@@ -10,6 +10,7 @@ export default function SearchBichos() {
 
   const commonMatch = useMemo(() => {
     if (!results) return null
+    if (results.source === 'vr_rag') return 'VR-RAG (texto + re-ranking visual)'
     if (results.source === 'text_match') return 'Texto similar'
     if (results.source === 'batch_results') return 'Resultado de batch'
     if (results.source === 'local_match') return 'Imagen conocida localmente'
@@ -118,6 +119,36 @@ export default function SearchBichos() {
             </div>
           </div>
 
+          {results.stage1 && (
+            <div style={s.stageBlock}>
+              <div style={s.stageTitle}>Etapa 1 — Ranking imagen vs. texto (BioCLIP + CLIP)</div>
+              <div style={s.stageList}>
+                {results.stage1.map((c, i) => (
+                  <div key={i} style={s.stageRow}>
+                    <span style={s.stageRank}>#{c.rank}</span>
+                    <span style={s.stageName}>{c.name}</span>
+                    <span style={s.stageScore}>ensemble {c.score_ensemble?.toFixed(3)}</span>
+                    <span style={s.stageScoreMuted}>bioclip {c.score_bioclip?.toFixed(3)} · clip {c.score_clip?.toFixed(3)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {results.stage3 && (
+            <div style={s.stageBlock}>
+              <div style={s.stageTitle}>Etapa 3 — Deliberación final</div>
+              <div style={s.deliberation}>
+                <div style={s.deliberationHeadline}>
+                  <strong>{results.stage3.predicted_species}</strong>
+                  <span style={s.confidenceBadge(results.stage3.confidence)}>confianza {results.stage3.confidence}</span>
+                </div>
+                <div style={s.resultMeta}>{results.stage3.rationale}</div>
+              </div>
+            </div>
+          )}
+
+          {results.stage2 && <div style={s.stageTitle}>Etapa 2 — Re-ranking visual (DINOv2)</div>}
           <div style={s.cardGrid}>
             {results.predictions?.map((item, index) => {
               const isTop = index === 0
@@ -142,7 +173,12 @@ export default function SearchBichos() {
                   )}
                   {item.family && <div style={s.cardTaxon}>Familia: {item.family}</div>}
                   {item.order && <div style={s.cardTaxon}>Orden: {item.order}</div>}
-                  <div style={s.cardScore}>Similitud: {((item.score ?? 0) * 100).toFixed(1)}%</div>
+                  <div style={s.cardScore}>
+                    Similitud: {(((item.score_final ?? item.score) ?? 0) * 100).toFixed(1)}%
+                  </div>
+                  {item.score_dino != null && (
+                    <div style={s.cardSmall}>cross {item.score_ensemble?.toFixed(3)} · dino {item.score_dino?.toFixed(3)}</div>
+                  )}
                   {item.dataset_records != null && (
                     <div style={s.cardSmall}>Registros: {item.dataset_records}</div>
                   )}
@@ -199,4 +235,19 @@ const s = {
   cardTopBad: { borderColor: 'rgba(239, 68, 68, 0.9)', boxShadow: '0 8px 24px rgba(239, 68, 68, 0.06)' },
   topBadge: { marginTop: 6, padding: '6px 8px', borderRadius: 8, background: 'rgba(0,0,0,0.12)', color: 'var(--text-2)', fontSize: 12, display: 'inline-block' },
   matchHint: { marginTop: 8, fontSize: 13, color: 'var(--text-2)' },
+  stageBlock: { padding: '0 12px', display: 'flex', flexDirection: 'column', gap: 8 },
+  stageTitle: { fontSize: 13, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0 12px' },
+  stageList: { display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 160, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 10, padding: 8, background: 'var(--surface-2)' },
+  stageRow: { display: 'flex', gap: 10, alignItems: 'baseline', fontSize: 13 },
+  stageRank: { color: 'var(--text-3)', minWidth: 28 },
+  stageName: { fontWeight: 600, flex: 1 },
+  stageScore: { color: 'var(--accent-glow)', fontWeight: 700 },
+  stageScoreMuted: { color: 'var(--text-3)', fontSize: 12 },
+  deliberation: { border: '1px solid var(--border)', borderRadius: 10, padding: 12, background: 'var(--surface-2)', display: 'flex', flexDirection: 'column', gap: 6 },
+  deliberationHeadline: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 16 },
+  confidenceBadge: (level) => ({
+    padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
+    background: level === 'alta' ? 'rgba(74, 222, 128, 0.18)' : level === 'media' ? 'rgba(250, 204, 21, 0.18)' : 'rgba(239, 68, 68, 0.18)',
+    color: level === 'alta' ? '#15803d' : level === 'media' ? '#a16207' : '#b91c1c',
+  }),
 }

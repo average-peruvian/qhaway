@@ -9,9 +9,10 @@ from fastapi.responses import JSONResponse
 import pandas as pd
 import json
 from pathlib import Path
-from difflib import SequenceMatcher
-import tempfile
-import shutil
+from PIL import Image
+import io
+
+from backend.services import vr_rag
 
 router = APIRouter()
 
@@ -105,87 +106,37 @@ async def predict_external_species(
     known_species: str = Form(None),
     family: str = Form(None),
 ):
-    """Prediction endpoint (heuristic):
-    - If uploaded filename matches a local image in the copied JSONs, return that image's batch_results/top5 if available.
-    - Otherwise return top-5 text matches against known species names using fuzzy ratio.
+    """Pipeline VR-RAG (igual a tf/big_data_project/src/test_vr_rag_insecta.py):
+
+    Etapa 1 — ranking de la imagen subida contra embeddings de TEXTO
+              (BioCLIP + CLIP ensemble) de las descripciones taxonómicas.
+    Etapa 2 — re-ranking de los candidatos de la etapa 1 contra embeddings
+              de IMÁGENES ancla (DINOv2) por especie.
+    Etapa 3 — deliberación final: especie ganadora + nivel de confianza.
     """
-    base = Path('data/processed/external_tf')
-    json_root = base / 'jsons'
+    raw = await file.read()
+    try:
+        img = Image.open(io.BytesIO(raw)).convert('RGB')
+    except Exception:
+        raise HTTPException(status_code=400, detail="Archivo de imagen inválido")
 
-    # Build species name list and image->species mapping from available JSONs
-    species_names = set()
-    image_map = {}  # basename -> species_name
-    batch_map = {}  # species_name -> prediction records (if available)
+    try:
+        pipeline = vr_rag.run_pipeline(img)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Fallo en el pipeline VR-RAG: {exc}")
 
-    for p in json_root.rglob('*.json'):
-        try:
-            obj = json.loads(p.read_text(encoding='utf-8'))
-        except Exception:
-            continue
-        # knowledge_base style
-        if isinstance(obj, dict) and all(isinstance(v, dict) for v in obj.values()):
-            for name, v in obj.items():
-                sp = v.get('species') or v.get('name') or name
-                species_names.add(sp)
-                for li in (v.get('local_images') or []):
-                    image_map[Path(li).name.lower()] = sp
-        # batch_results preview
-        if isinstance(obj, dict) and 'preview' in obj and isinstance(obj['preview'], list):
-            for entry in obj['preview']:
-                sp = entry.get('target_species') or entry.get('species') or entry.get('name')
-                if sp:
-                    batch_map.setdefault(sp, []).append(entry)
-        # list-style JSON
-        if isinstance(obj, list):
-            for entry in obj:
-                if not isinstance(entry, dict):
-                    continue
-                sp = entry.get('species') or entry.get('name')
-                if sp:
-                    species_names.add(sp)
-                    for li in (entry.get('local_images') or []):
-                        image_map[Path(li).name.lower()] = sp
+    stage2 = [_augment_prediction(p) for p in pipeline['stage2']]
+    result = {
+        'source': 'vr_rag',
+        'stage1': pipeline['stage1'][:10],
+        'stage2': stage2,
+        'stage3': pipeline['stage3'],
+        'predictions': stage2,
+    }
 
-    # save uploaded file temporarily
-    tmpdir = Path(tempfile.gettempdir())
-    tmp_path = tmpdir / file.filename
-    with tmp_path.open('wb') as out:
-        shutil.copyfileobj(file.file, out)
-
-    fname = tmp_path.name.lower()
-
-    # If image filename matches
-    if fname in image_map:
-        sp = image_map[fname]
-        preds = batch_map.get(sp)
-        if preds:
-            # return top5 from first matching pred list
-            top5 = preds[0].get('top5') if isinstance(preds[0].get('top5'), list) else None
-            if isinstance(top5, list):
-                top5 = [_augment_prediction(p) for p in top5]
-            result = {'source': 'batch_results', 'matched_species': sp, 'predictions': top5 or []}
-        else:
-            result = {'source': 'local_match', 'matched_species': sp, 'predictions': []}
-    else:
-        # fuzzy match against species_names
-        def score(a, b):
-            return SequenceMatcher(None, a.lower(), b.lower()).ratio()
-
-        candidates = []
-        for s in species_names:
-            candidates.append((s, score(file.filename, s)))
-        candidates.sort(key=lambda x: x[1], reverse=True)
-        top5 = [
-            _augment_prediction({'name': c[0], 'score': round(c[1], 3), 'source': 'text_match'})
-            for c in candidates[:5]
-        ]
-        result = {'source': 'text_match', 'predictions': top5}
-
-    # if known_species provided, add accuracy flag
-    if known_species and result.get('predictions'):
-        top1 = result['predictions'][0]
-        top1_name = top1.get('name') or top1.get('rank') or top1.get('target_species')
+    if known_species and result['predictions']:
+        top1_name = result['predictions'][0].get('name')
         result['known_species'] = known_species
-        result['top1_is_known'] = (top1_name and top1_name.lower() == known_species.lower())
+        result['top1_is_known'] = bool(top1_name and top1_name.lower() == known_species.lower())
 
     return JSONResponse(result)
